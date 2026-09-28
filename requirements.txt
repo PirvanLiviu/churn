@@ -1,0 +1,9 @@
+xgboost
+pandas
+numpy
+scikit-learn
+fastapi
+uvicorn[standard]
+gradio
+pydantic
+python-multipart
