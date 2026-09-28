@@ -1,48 +1,10 @@
-## Secrets — never commit API keys
-.env
-.env.*
-!.env.example
-
-# Virtual environments
-venv/
 .venv/
-env/
-
-# Python cache and build files
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Data and models (usually too large for git)
-data/
-*.csv
-*.parquet
-models/
-*.pt
-*.pth
-*.h5
-*.onnx
-*.pkl
-*.joblib
-
-# Experiment tracking
-mlruns/
-wandb/
-runs/
-
-# Testing and tooling
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-
-# Editors and OS
-.vscode/
-.idea/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
 .DS_Store
-
+data/
+models/
+.env
