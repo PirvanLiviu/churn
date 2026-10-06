@@ -1,24 +1,47 @@
 import pandas as pd
 
+YES_NO = {"Yes": 1, "No": 0}
+INTERNET_ADDON = {"Yes": 2, "No": 1, "No internet service": 0}
+
+# raw value -> encoded value for every categorical column
+ENCODINGS = {
+    # encoding yes/no columns
+    "Partner": YES_NO,
+    "Dependents": YES_NO,
+    "PhoneService": YES_NO,
+    "PaperlessBilling": YES_NO,
+    "Churn": YES_NO,
+    # encoding columns with 3 unique values
+    "MultipleLines": {"Yes": 2, "No": 1, "No phone service": 0},
+    "InternetService": {"DSL": 2, "Fiber optic": 1, "No": 0},
+    "OnlineSecurity": INTERNET_ADDON,
+    "OnlineBackup": INTERNET_ADDON,
+    "DeviceProtection": INTERNET_ADDON,
+    "TechSupport": INTERNET_ADDON,
+    "StreamingTV": INTERNET_ADDON,
+    "StreamingMovies": INTERNET_ADDON,
+    "Contract": {"Month-to-month": 0, "One year": 1, "Two year": 2},
+    "PaymentMethod": {"Electronic check": 0, "Mailed check": 1, "Bank transfer (automatic)": 2, "Credit card (automatic)": 3},
+    "gender": {"Male": 1, "Female": 0},
+}
+
+
+def encode(df: pd.DataFrame) -> pd.DataFrame:
+    # also used by the api, where there is no Churn column, so only encode columns that exist
+    df = df.copy()
+    for col, mapping in ENCODINGS.items():
+        if col in df.columns:
+            df[col] = df[col].map(mapping)  # type: ignore
+
+    return df
+
+
 def preprocessor():
     df: pd.DataFrame = pd.read_csv("../data/raw.csv")
     # dropping customer id since it makes no sense
     df.drop(columns=["customerID"], inplace=True)
 
-    # encoding yes/no columns
-    yn = ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"]
-    for col in yn:
-        df[col] = df[col].map({"Yes": 1, "No": 0}) # type: ignore
-
-    # encoding columns with 3 unique values
-    other = ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"]
-    df["MultipleLines"] = df["MultipleLines"].map({"Yes": 2, "No": 1, "No phone service": 0}) # type: ignore
-    df["InternetService"] = df["InternetService"].map({"DSL": 2, "Fiber optic": 1, "No": 0}) # type: ignore
-    for col in other:
-        df[col] = df[col].map({"Yes": 2, "No": 1, "No internet service": 0}) # type: ignore
-    df["Contract"] = df["Contract"].map({"Month-to-month": 0, "One year": 1, "Two year": 2}) # type: ignore
-    df["PaymentMethod"] = df["PaymentMethod"].map({"Electronic check": 0, "Mailed check": 1, "Bank transfer (automatic)": 2, "Credit card (automatic)": 3}) # type: ignore
-    df["gender"] = df["gender"].map({"Male": 1, "Female": 0}) # type: ignore
+    df = encode(df)
 
     # remove white space (found in total charges column)
     for col in df.columns:
@@ -26,4 +49,6 @@ def preprocessor():
 
     df.to_csv("../data/preprocessed.csv", index=False)
 
-preprocessor()
+
+if __name__ == "__main__":
+    preprocessor()

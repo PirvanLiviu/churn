@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from helpers import PREPROCESSED_CSV, RAW_CSV, import_fresh
+from helpers import PREPROCESSED_CSV, RAW_CSV, cwd, import_fresh
 
 EXPECTED_COLUMNS = [
     "gender", "SeniorCitizen", "Partner", "Dependents", "tenure", "PhoneService",
@@ -51,7 +51,9 @@ class TestPreprocessor(unittest.TestCase):
         (cls.tmp / "src").mkdir()
         cls.raw.to_csv(cls.tmp / "data" / "raw.csv", index=False)
 
-        import_fresh("preprocessor", work_dir=cls.tmp / "src")
+        preprocessor = import_fresh("preprocessor")
+        with cwd(cls.tmp / "src"):
+            preprocessor.preprocessor()
         cls.out = pd.read_csv(cls.tmp / "data" / "preprocessed.csv")
 
     @classmethod

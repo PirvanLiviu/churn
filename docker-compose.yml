@@ -1,0 +1,10 @@
+services:
+  api:
+    build: .
+    image: churn-api
+    container_name: churn-api
+    ports:
+      - "8000:8000"
+    environment:
+      - THRESHOLD=0.5
+    restart: unless-stopped

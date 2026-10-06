@@ -13,8 +13,10 @@ RAW_CSV = DATA / "raw.csv"
 PREPROCESSED_CSV = DATA / "preprocessed.csv"
 MODEL_FILE = MODELS / "model_v1.ubj"
 
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+# src/ for the training modules, the project root for the api package
+for path in (SRC, ROOT):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 
 @contextmanager
