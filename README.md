@@ -29,6 +29,17 @@ pip install -r requirements.txt
 uvicorn api.main:app --reload
 ```
 
+## Preprocess and train
+
+```
+python src/preprocessor.py              # data/raw.csv -> data/preprocessed.csv
+python src/model.py                     # tune (50 trials) + train -> models/model_v1.ubj
+python src/model.py --trials 100 --version 2
+python src/evaluate.py                  # scores on the held-out test set (run from src/)
+```
+
+Tuning uses 5-fold cross-validation on the training split only, so the test set stays unseen until `evaluate.py`. The chosen hyperparameters are saved next to the model as `models/model_v<version>_params.json`.
+
 ## Tests
 
 ```

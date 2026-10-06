@@ -1,3 +1,5 @@
+import contextlib
+import io
 import shutil
 import tempfile
 import unittest
@@ -5,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from helpers import PREPROCESSED_CSV, RAW_CSV, cwd, import_fresh
+from helpers import PREPROCESSED_CSV, RAW_CSV, import_fresh
 
 EXPECTED_COLUMNS = [
     "gender", "SeniorCitizen", "Partner", "Dependents", "tenure", "PhoneService",
@@ -37,7 +39,7 @@ ENCODED_VALUES = {
 
 
 class TestPreprocessor(unittest.TestCase):
-    """Runs preprocessor.py on a sample of raw.csv inside a temp folder, so the real data is never overwritten."""
+    """Runs the preprocessor on a sample of raw.csv in a temp folder, so the real data is never overwritten."""
 
     @classmethod
     def setUpClass(cls):
@@ -47,14 +49,12 @@ class TestPreprocessor(unittest.TestCase):
         cls.n_blank = len(blank)
 
         cls.tmp = Path(tempfile.mkdtemp())
-        (cls.tmp / "data").mkdir()
-        (cls.tmp / "src").mkdir()
-        cls.raw.to_csv(cls.tmp / "data" / "raw.csv", index=False)
+        cls.raw.to_csv(cls.tmp / "raw.csv", index=False)
 
-        preprocessor = import_fresh("preprocessor")
-        with cwd(cls.tmp / "src"):
-            preprocessor.preprocessor()
-        cls.out = pd.read_csv(cls.tmp / "data" / "preprocessed.csv")
+        cls.preprocessor = import_fresh("preprocessor")
+        with contextlib.redirect_stdout(io.StringIO()):
+            cls.preprocessor.preprocessor(cls.tmp / "raw.csv", cls.tmp / "preprocessed.csv")
+        cls.out = pd.read_csv(cls.tmp / "preprocessed.csv")
 
     @classmethod
     def tearDownClass(cls):
@@ -84,6 +84,17 @@ class TestPreprocessor(unittest.TestCase):
         for col, allowed in ENCODED_VALUES.items():
             with self.subTest(col=col):
                 self.assertTrue(set(self.out[col].unique()) <= allowed)
+
+    def test_unknown_category_raises(self):
+        bad = self.raw.head(5).copy()
+        bad.loc[0, "Contract"] = "Weekly"
+        with self.assertRaisesRegex(ValueError, "Contract"):
+            self.preprocessor.clean(bad)
+
+    def test_encode_skips_missing_columns(self):
+        # the api sends customers without a Churn column
+        out = self.preprocessor.encode(pd.DataFrame({"gender": ["Male"], "Contract": ["Two year"]}))
+        self.assertEqual(out.iloc[0].tolist(), [1, 2])
 
     def test_first_row_encoding(self):
         # 7590-VHVEG: Female, Partner Yes, no phone service, DSL, Month-to-month, Electronic check, Churn No
