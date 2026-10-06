@@ -2,6 +2,9 @@ xgboost
 pandas
 numpy
 scikit-learn
+optuna
+matplotlib
+seaborn
 fastapi
 uvicorn[standard]
 gradio
